@@ -1,0 +1,715 @@
+Tools: nslookup, dig, host
+
+bash
+# Basic DNS resolution
+nslookup example.com
+
+# All DNS records
+dig example.com ANY
+
+# Specific record types
+dig example.com A          # IPv4 addresses
+dig example.com AAAA       # IPv6 addresses
+dig example.com MX         # Mail servers
+dig example.com TXT        # Text records (SPF, DKIM)
+dig example.com NS         # Name servers
+dig example.com SOA        # Start of Authority
+
+# Reverse DNS lookup
+dig -x 192.168.1.1
+
+# DNS zone transfer attempt (usually blocked)
+dig @ns1.example.com example.com AXFR
+Google Dorking
+Advanced search operators for reconnaissance:
+
+bash
+# Basic operators
+site:example.com
+filetype:pdf
+inurl:admin
+intitle:"index of"
+ext:sql
+
+# Useful reconnaissance dorks
+site:example.com filetype:pdf
+site:example.com inurl:admin
+site:example.com intitle:"login"
+site:example.com "index of" "database"
+site:example.com ext:log "password"
+site:example.com "phpinfo()"
+site:example.com inurl:config
+Shodan Search
+Internet-connected device search engine:
+
+bash
+# Common Shodan search queries
+hostname:example.com
+net:192.168.1.0/24
+port:22
+country:US
+product:Apache
+os:"Windows Server"
+"Apache/2.4.41"
+"Microsoft-IIS/10.0"
+Shodan Filters:
+
+city: - Filter by city
+
+country: - Filter by country
+
+port: - Filter by port number
+
+os: - Operating system
+
+product: - Software product
+
+1.2 Active Reconnaissance
+Ping Sweep
+Discovering live hosts on a network:
+
+bash
+# Using nmap
+nmap -sn 192.168.56.0/24
+
+# Using fping (faster)
+fping -g 192.168.56.0/24 2>/dev/null | grep "is alive"
+
+# Using ping in bash loop
+for ip in {1..254}; do ping -c 1 192.168.56.$ip | grep "bytes from" & done
+
+# Using hping3
+hping3 --scan 1-254 -S 192.168.56.1
+Banner Grabbing
+Service identification through banner collection:
+
+bash
+# Using netcat
+nc -nv 192.168.56.101 80
+GET / HTTP/1.0
+[Enter]
+[Enter]
+
+# Using telnet
+telnet 192.168.56.101 25
+
+# Using nmap
+nmap -sV --script=banner 192.168.56.101
+
+# Using curl for HTTP
+curl -I http://192.168.56.101
+Network Mapping
+Discovering network topology:
+
+bash
+# Traceroute
+traceroute 192.168.56.101
+traceroute -I 192.168.56.101  # ICMP traceroute
+
+# Using mtr (continuous traceroute)
+mtr 192.168.56.101
+
+# ARP scanning (local network)
+arp-scan -l
+nmap -PR 192.168.56.0/24
+2. Port & Service Scanning
+2.1 Nmap Scanning Techniques
+Basic Scan Types
+TCP SYN Scan (Stealth Scan)
+
+bash
+nmap -sS 192.168.56.101
+Advantages: Fast, stealthy, doesn't complete TCP handshake
+
+Requirements: Root privileges
+
+Detection: May trigger IDS/IPS
+
+TCP Connect Scan
+
+bash
+nmap -sT 192.168.56.101
+Advantages: No root privileges needed
+
+Disadvantages: Completes full TCP handshake, more detectable
+
+UDP Scan
+
+bash
+nmap -sU 192.168.56.101
+Important UDP ports: 53(DNS), 67(DHCP), 123(NTP), 161(SNMP)
+
+Note: UDP scanning is slow due to lack of responses
+
+Advanced Scanning Options
+Service Version Detection
+
+bash
+nmap -sV 192.168.56.101
+nmap -sV --version-intensity 5 192.168.56.101  # More aggressive
+nmap -sV --version-light 192.168.56.101        # Less aggressive
+OS Detection
+
+bash
+nmap -O 192.168.56.101
+nmap -O --osscan-guess 192.168.56.101  # More aggressive guessing
+Script Scanning
+
+bash
+# Default scripts
+nmap -sC 192.168.56.101
+
+# Specific script categories
+nmap --script=vuln 192.168.56.101
+nmap --script=safe 192.168.56.101
+nmap --script=auth 192.168.56.101
+
+# Individual scripts
+nmap --script=http-enum 192.168.56.101
+nmap --script=ssh-brute 192.168.56.101
+Comprehensive Scanning
+Full Port Scan
+
+bash
+nmap -p- 192.168.56.101                    # All ports
+nmap -p 1-1000 192.168.56.101             # Specific range
+nmap --top-ports 100 192.168.56.101       # Top 100 ports
+Aggressive Scan
+
+bash
+nmap -A 192.168.56.101
+# Includes: OS detection, version detection, script scanning, traceroute
+Timing and Performance
+
+bash
+nmap -T0 192.168.56.101  # Paranoid (very slow)
+nmap -T1 192.168.56.101  # Sneaky
+nmap -T2 192.168.56.101  # Polite
+nmap -T3 192.168.56.101  # Normal (default)
+nmap -T4 192.168.56.101  # Aggressive
+nmap -T5 192.168.56.101  # Insane
+2.2 Output Formats and Reporting
+bash
+# Normal output to screen
+nmap -sS 192.168.56.101
+
+# Save to file
+nmap -oN scan.txt 192.168.56.101          # Normal format
+nmap -oX scan.xml 192.168.56.101          # XML format
+nmap -oG scan.gnmap 192.168.56.101        # Grepable format
+nmap -oA scan 192.168.56.101              # All formats
+
+# Combine options
+nmap -sS -sV -O -A -oA comprehensive_scan 192.168.56.101
+2.3 Evasion Techniques
+Fragmentation
+
+bash
+nmap -f 192.168.56.101                    # 8-byte fragments
+nmap --mtu 16 192.168.56.101              # Custom MTU
+Decoy Scanning
+
+bash
+nmap -D 192.168.1.1,192.168.1.2,192.168.1.3,ME 192.168.56.101
+# Uses decoy IPs to hide real source
+Source Port Manipulation
+
+bash
+nmap --source-port 53 192.168.56.101      # Use DNS source port
+nmap -g 80 192.168.56.101                 # Use HTTP source port
+Timing and Delays
+
+bash
+nmap --scan-delay 1s 192.168.56.101       # 1 second between probes
+nmap --max-parallelism 10 192.168.56.101  # Limit parallel probes
+3. Vulnerability Scanning
+3.1 OpenVAS Setup and Usage
+Installation on Kali Linux
+bash
+# Install OpenVAS
+sudo apt update
+sudo apt install -y openvas
+
+# Setup OpenVAS
+sudo gvm-setup
+
+# Start OpenVAS services
+sudo gvm-start
+
+# Check setup completion
+sudo gvm-check-setup
+
+# Create user (if needed)
+sudo gvmd --create-user=admin --password=adminpassword
+Accessing OpenVAS
+bash
+# Access via web browser
+https://127.0.0.1:9392
+
+# Default credentials: admin/admin
+Basic Scanning Workflow
+Create Target
+
+Navigate: Configuration → Targets → New Target
+
+Enter target IP: 192.168.56.101
+
+Port range: 1-65535
+
+Credentials: (if available for authenticated scanning)
+
+Create Scan Task
+
+Navigate: Scans → Tasks → New Task
+
+Name: "Metasploitable2 Full Scan"
+
+Scan Target: Select created target
+
+Scan Config: "Full and fast"
+
+Start Scan
+
+Click "Start" button
+
+Monitor progress in dashboard
+
+Analyze Results
+
+View results by severity: Critical, High, Medium, Low
+
+Export reports in various formats
+
+Advanced OpenVAS Features
+Scan Configurations:
+
+Full and fast: Comprehensive scan
+
+Full and very deep: Thorough but slow
+
+System Discovery: Host discovery only
+
+Host Discovery: Find active hosts
+
+Report Export:
+
+PDF format for management
+
+XML format for analysis
+
+HTML format for web viewing
+
+TXT format for quick review
+
+3.2 Nessus Essentials
+Installation
+bash
+# Download from: https://www.tenable.com/products/nessus/nessus-essentials
+# Install on Kali Linux
+sudo dpkg -i Nessus-*.deb
+
+# Start Nessus
+sudo systemctl start nessusd
+
+# Access: https://kali:8834
+Basic Scanning
+New Scan → Basic Network Scan
+
+Targets: 192.168.56.101
+
+Configure scan settings
+
+Launch scan
+
+Review vulnerabilities
+
+3.3 Vulnerability Assessment Methodology
+Pre-Assessment
+Scope Definition: Define what to test
+
+Rules of Engagement: Define testing boundaries
+
+Authorization: Obtain proper permissions
+
+Communication Plan: Establish reporting channels
+
+Assessment Phase
+Discovery: Find all assets
+
+Port Scanning: Identify open services
+
+Service Enumeration: Gather service information
+
+Vulnerability Detection: Identify weaknesses
+
+Validation: Verify findings
+
+Post-Assessment
+Risk Rating: Assign severity levels
+
+Reporting: Document findings
+
+Remediation: Provide fix recommendations
+
+Re-testing: Verify fixes
+
+3.4 Common Vulnerability Classes
+Network Vulnerabilities
+Weak encryption: SSL/TLS misconfigurations
+
+Open ports: Unnecessary services exposed
+
+Network sniffing: Unencrypted protocols
+
+Spoofing attacks: ARP, DNS spoofing
+
+Service Vulnerabilities
+Buffer overflows: Memory corruption issues
+
+Privilege escalation: Gaining higher access
+
+Information disclosure: Sensitive data exposure
+
+Denial of Service: Service availability issues
+
+Web Application Vulnerabilities
+SQL Injection: Database manipulation
+
+Cross-Site Scripting (XSS): Client-side attacks
+
+Cross-Site Request Forgery (CSRF): Unauthorized actions
+
+File Inclusion: Local/Remote file inclusion
+
+4. Packet Analysis
+4.1 Wireshark Fundamentals
+Basic Capture
+bash
+# Start Wireshark
+sudo wireshark
+
+# Or use command line
+sudo tshark -i eth0
+Capture Filters
+bash
+# Capture only specific traffic
+host 192.168.56.101
+net 192.168.56.0/24
+port 80
+port 53
+tcp port 443
+udp port 67
+not arp
+Display Filters
+bash
+# Filter captured traffic
+ip.addr == 192.168.56.101
+tcp.port == 80
+http.request.method == "GET"
+dns.qry.name contains "google"
+ftp.request.command == "USER"
+4.2 Protocol Analysis
+HTTP Traffic Analysis
+bash
+# Filter HTTP requests
+http.request
+
+# Filter specific methods
+http.request.method == "GET"
+http.request.method == "POST"
+
+# View request details
+http.request.uri
+http.host
+http.user_agent
+FTP Traffic Analysis
+bash
+# Filter FTP traffic
+ftp
+
+# Capture credentials
+ftp.request.command == "USER"
+ftp.request.command == "PASS"
+
+# View file transfers
+ftp-data
+DNS Traffic Analysis
+bash
+# Filter DNS queries
+dns
+
+# Specific query types
+dns.qry.type == 1    # A records
+dns.qry.type == 28   # AAAA records
+dns.qry.type == 15   # MX records
+4.3 Attack Simulation and Analysis
+SYN Flood Attack
+bash
+# Simulate SYN flood with hping3
+sudo hping3 -S --flood -p 80 192.168.56.101
+
+# In Wireshark, filter for:
+tcp.flags.syn == 1 && tcp.flags.ack == 0
+ip.src == your_kali_ip
+Credential Capture from FTP
+bash
+# Capture FTP login credentials
+ftp.request.command == "USER" || ftp.request.command == "PASS"
+
+# Follow TCP stream to see complete session
+DNS Analysis
+bash
+# Monitor DNS queries and responses
+dns
+
+# Look for suspicious domains
+dns.qry.name contains "malware"
+dns.qry.name contains "phishing"
+4.4 Advanced Wireshark Features
+Statistics and Analysis
+Conversations: View communication pairs
+
+Protocol Hierarchy: See traffic distribution
+
+IO Graphs: Visualize traffic patterns
+
+Flow Graphs: See conversation sequences
+
+Exporting Data
+bash
+# Export specific packets
+File → Export Specified Packets
+
+# Export objects from HTTP
+File → Export Objects → HTTP
+
+# Export statistics
+Statistics → Various options
+5. Firewall Configuration
+5.1 iptables Fundamentals
+Basic Syntax
+bash
+iptables -A CHAIN -p PROTOCOL --dport PORT -j ACTION
+Common Chains
+INPUT: Incoming traffic to firewall
+
+OUTPUT: Outgoing traffic from firewall
+
+FORWARD: Traffic through firewall
+
+Common Actions
+ACCEPT: Allow traffic
+
+DROP: Block traffic (no response)
+
+REJECT: Block traffic (send rejection)
+
+LOG: Log traffic for monitoring
+
+5.2 Practical iptables Rules
+Basic Rule Set
+bash
+# Set default policies
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+# Allow loopback interface
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow established connections
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allow SSH (port 22)
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Allow HTTP (port 80)
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+
+# Allow HTTPS (port 443)
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+
+# Allow DNS (port 53)
+iptables -A INPUT -p udp --dport 53 -j ACCEPT
+Port Scanning Protection
+bash
+# Limit connection attempts
+iptables -A INPUT -p tcp --dport 22 -m limit --limit 3/min --limit-burst 3 -j ACCEPT
+
+# Block port scanners
+iptables -A INPUT -p tcp --tcp-flags ALL FIN,URG,PSH -j DROP
+iptables -A INPUT -p tcp --tcp-flags ALL ALL -j DROP
+iptables -A INPUT -p tcp --tcp-flags ALL NONE -j DROP
+
+# Protect against SYN floods
+iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 3 -j ACCEPT
+Advanced Rules
+bash
+# Block specific IP address
+iptables -A INPUT -s 192.168.56.200 -j DROP
+
+# Block port range
+iptables -A INPUT -p tcp --dport 1:1000 -j DROP
+
+# Allow specific network
+iptables -A INPUT -s 192.168.56.0/24 -j ACCEPT
+
+# Log dropped packets
+iptables -A INPUT -j LOG --log-prefix "IPTABLES-DROPPED: "
+5.3 iptables Management
+Saving Rules
+bash
+# Save current rules
+iptables-save > /etc/iptables/rules.v4
+
+# For IPv6
+ip6tables-save > /etc/iptables/rules.v6
+
+# Make rules persistent
+apt install iptables-persistent
+Viewing Rules
+bash
+# List all rules
+iptables -L -n -v
+
+# List with line numbers
+iptables -L -n -v --line-numbers
+
+# View specific chain
+iptables -L INPUT -n -v
+Rule Management
+bash
+# Delete rule by number
+iptables -D INPUT 3
+
+# Insert rule at specific position
+iptables -I INPUT 2 -p tcp --dport 22 -j ACCEPT
+
+# Flush all rules
+iptables -F
+
+# Reset counters
+iptables -Z
+5.4 Firewall Testing
+Testing Rule Effectiveness
+bash
+# Test blocked ports
+nmap -p 23 192.168.56.101  # Should show filtered/closed
+
+# Test allowed ports
+nmap -p 22,80,443 192.168.56.101  # Should show open
+
+# Test from different source IP
+nmap -S 192.168.56.200 -p 22 192.168.56.101
+Monitoring Firewall Logs
+bash
+# View kernel messages
+dmesg | grep iptables
+
+# View system logs
+tail -f /var/log/syslog | grep iptables
+
+# View specific log file
+tail -f /var/log/iptables.log
+6. Deliverables & Reporting
+6.1 Nmap Scan Report Template
+markdown
+# Nmap Scan Report
+
+## Scan Information
+- **Target:** 192.168.56.101
+- **Scan Type:** TCP SYN Scan
+- **Date:** [Date]
+- **Scanner:** Kali Linux
+
+## Scan Command
+```bash
+nmap -sS -sV -O -A -p- -oA full_scan 192.168.56.101
+Results Summary
+Host Status: Up
+
+Open Ports: [Number]
+
+Filtered Ports: [Number]
+
+Closed Ports: [Number]
+
+Port Details
+Port	Protocol	State	Service	Version
+21	tcp	open	ftp	vsftpd 2.3.4
+22	tcp	open	ssh	OpenSSH 4.7p1
+80	tcp	open	http	Apache httpd 2.2.8
+Vulnerability Assessment
+[List of identified vulnerabilities with severity ratings]
+
+Recommendations
+[Specific remediation steps]
+
+text
+
+### 6.2 OpenVAS Vulnerability Report Template
+
+```markdown
+# Vulnerability Assessment Report
+
+## Executive Summary
+- **Target:** 192.168.56.101
+- **Scan Date:** [Date]
+- **Critical Vulnerabilities:** [Number]
+- **High Vulnerabilities:** [Number]
+- **Medium Vulnerabilities:** [Number]
+
+## Critical Findings
+1. **Vulnerability Name**
+   - **CVSS Score:** [Score]
+   - **Description:** [Brief description]
+   - **Impact:** [Potential damage]
+   - **Remediation:** [Fix steps]
+
+## High Severity Findings
+[Repeat structure for high severity issues]
+
+## Medium Severity Findings
+[Repeat structure for medium severity issues]
+
+## Risk Analysis
+[Overall risk assessment and business impact]
+
+## Appendices
+- Full scan results
+- Proof of concept screenshots
+- Technical details
+6.3 Wireshark Analysis Report Template
+markdown
+# Network Traffic Analysis Report
+
+## Analysis Overview
+- **Capture Duration:** [Time period]
+- **Total Packets:** [Number]
+- **Protocol Distribution:** [Breakdown]
+
+## Key Findings
+### 1. Unencrypted Protocols
+- **FTP Credentials Captured:** [Yes/No]
+- **HTTP Data Transmission:** [Details]
+
+### 2. Suspicious Activities
+- **Port Scanning Detection:** [Evidence]
+- **DDoS Attempts:** [Evidence]
+- **Malicious Payloads:** [Evidence]
+
+### 3. Performance Issues
+- **Network Latency:** [Analysis]
+- **Packet Loss:** [Statistics]
+- **Bandwidth Usage:** [Patterns]
+
+## Security Recommendations
+1. **Encryption:** Implement TLS for all services
+2. **Monitoring:** Set up intrusion detection
+3. **Hardening:** Close unnecessary ports
+4. **Patching:** Update vulnerable services
+
+## Evidence
+[Screenshots and packet captures]
+6.4 GitHub Repository Structure
