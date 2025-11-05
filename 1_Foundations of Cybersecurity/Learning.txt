@@ -1,0 +1,51 @@
+1. Cybersecurity Basics
+CIA Triad:
+
+Confidentiality: Keeping data private (e.g., encryption).
+
+Integrity: Ensuring data is not altered (e.g., hashing).
+
+Availability: Ensuring systems are accessible when needed.
+
+Common Threats:
+
+Phishing, Malware, DDoS, SQL Injection, Brute Force, Ransomware.
+
+Attack Vectors:
+
+Social Engineering, Wireless Attacks, Insider Threats.
+
+2. Lab Setup
+Install VirtualBox/VMware.
+
+Download and install Kali Linux (attacker machine).
+
+Download Metasploitable2 or DVWA (vulnerable target).
+
+Set up a Host-Only Network to isolate your lab.
+
+3. Linux Basics
+Learn essential commands:
+
+cd, ls, pwd, chmod, chown, apt, ifconfig, ping, netstat.
+
+4. Networking Basics
+OSI Model & TCP/IP Suite.
+
+IP Addressing, Subnetting, DNS, HTTP/HTTPS.
+
+5. Cryptography
+Symmetric vs Asymmetric Encryption.
+
+Hashing (MD5, SHA256).
+
+Use OpenSSL to encrypt/decrypt a file.
+
+6. Tool Familiarization
+Wireshark: Capture and analyze packets.
+
+Nmap: Scan networks.
+
+Burp Suite: Intercept web traffic.
+
+Netcat: Connect to ports.
